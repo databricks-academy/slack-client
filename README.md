@@ -8,6 +8,8 @@ It's key feature is its ability to maintain a slack-thread and post updates to t
 
 # Getting Started
 
+```
 conda create -n slack-client python=3.8
 conda activate slack-client
 pip install -r requirements.txt
+```
