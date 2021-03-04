@@ -1,5 +1,5 @@
 # Slack-Client
-Owner: Jacob Parr | A Slack client that is capable of maintaining slack-threads
+Owner: Jacob Parr | A Slack client that is capable of maintaining and contributing to a slack-thread that this client creates.
 
 # Purpose
 This client is used by various apps including AWS Lambdas and Spark Listeners to post messages back to Slack.
