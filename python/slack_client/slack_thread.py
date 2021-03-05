@@ -2,14 +2,14 @@ class SlackThread(object):
 
     def __init__(self, channel, username):
         self.thread_ts = None
-        self.initial_attachments = None
+        self.initial_attachments = []
         self.last_response = None
         self.channel = channel
         self.username = username
 
-        self.warnings = False
-        self.errors = False
-        self.exceptions = False
+        self.warnings = 0
+        self.errors = 0
+        self.exceptions = 0
 
     def update_first_msg(self, color, message):
         encoded = self.__encode(message)
@@ -26,25 +26,24 @@ class SlackThread(object):
         json_payload = self.chat_payload(reply_broadcast, "warning", encoded, [])
         self.__send(json_payload)
 
-        if not self.warnings:
-            self.warnings = True
-            self.update_first_msg("warning", "Warnings Found")
+        self.warnings += 1
+        message, color = self.rebuild_first_message()
+        self.update_first_msg(color, self.__encode(message))
 
     def send_error(self, message, reply_broadcast=False):
         encoded = self.__encode(message)
         json_payload = self.chat_payload(reply_broadcast, "danger", encoded, [])
         self.__send(json_payload)
 
-        if not self.errors:
-            self.errors = True
-            self.update_first_msg("danger", "Errors Found")
+        self.errors += 1
+        message, color = self.rebuild_first_message()
+        self.update_first_msg(color, self.__encode(message))
 
     def send_exception(self, message, reply_broadcast=False):
         import traceback
 
-        encoded = self.__encode(message)
+        message = self.__encode(message)
 
-        message = ":rotating_light: *APPLICATION ERROR* :rotating_light:\n*{}*".format(encoded)
         error_msg = traceback.format_exc()
 
         if str(error_msg).strip() != "NoneType: None":
@@ -54,9 +53,29 @@ class SlackThread(object):
 
         self.__send(json_payload)
 
-        if not self.exceptions:
-            self.exceptions = True
-            self.update_first_msg("danger", ":rotating_light: Exceptions Found")
+        self.exceptions += 1
+        message, color = self.rebuild_first_message()
+        self.update_first_msg(color, self.__encode(message))
+
+    def rebuild_first_message(self):
+        label = ""
+
+        if self.exceptions > 0:
+            label += f" {self.exceptions} Exceptions |"
+
+        if self.errors > 0:
+            label += f" {self.errors} Errors |"
+
+        if self.warnings > 0:
+            label += f" {self.warnings} Warnings |"
+
+        label = label.strip()
+        parts = self.initial_attachments[0]["text"].split("\n")
+        text = parts[-1].strip()
+        message = "| " +label + "\n" + text
+
+        color = "danger" if self.errors > 0 or self.exceptions > 0 else "warning"
+        return message, color
 
     @staticmethod
     def __headers():
