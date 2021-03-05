@@ -12,56 +12,75 @@ def test_rebuild_first_message():
     thread.errors = 0
     thread.exceptions = 0
     message, color = thread.rebuild_first_message()
-    assert message == "3 Warnings | This is a test"
+    assert message == "| 3 Warnings |\nThis is a test"
     assert color == "warning"
 
     thread.warnings = 0
     thread.errors = 5
     thread.exceptions = 0
     message, color =  thread.rebuild_first_message()
-    assert message == "5 Errors | This is a test"
+    assert message == "| 5 Errors |\nThis is a test"
     assert color == "danger"
 
     thread.warnings = 0
     thread.errors = 0
     thread.exceptions = 7
     message, color = thread.rebuild_first_message()
-    assert message == "7 Exceptions | This is a test"
+    assert message == "| 7 Exceptions |\nThis is a test"
     assert color == "danger"
 
     thread.warnings = 3
     thread.errors = 2
     thread.exceptions = 0
     message, color = thread.rebuild_first_message()
-    assert message == "2 Errors | 3 Warnings | This is a test"
+    assert message == "| 2 Errors | 3 Warnings |\nThis is a test"
     assert color == "danger"
 
     thread.warnings = 0
     thread.errors = 5
     thread.exceptions = 3
     message, color = thread.rebuild_first_message()
-    assert message == "3 Exceptions | 5 Errors | This is a test"
+    assert message == "| 3 Exceptions | 5 Errors |\nThis is a test"
     assert color == "danger"
 
     thread.warnings = 1
     thread.errors = 0
     thread.exceptions = 7
     message, color = thread.rebuild_first_message()
-    assert message == "7 Exceptions | 1 Warnings | This is a test"
+    assert message == "| 7 Exceptions | 1 Warnings |\nThis is a test"
     assert color == "danger"
 
     thread.warnings = 1
     thread.errors = 2
     thread.exceptions = 7
     message, color = thread.rebuild_first_message()
-    assert message == "7 Exceptions | 2 Errors | 1 Warnings | This is a test"
+    assert message == "| 7 Exceptions | 2 Errors | 1 Warnings |\nThis is a test"
     assert color == "danger"
 
 
 def test_split():
-    text = "7 Exceptions | 2 Errors | 1 Warnings | Some random comment"
+    text = "| 7 Exceptions | 2 Errors | 1 Warnings | Some random comment"
     parts = text.split("|")
     assert parts[-1].strip() == "Some random comment"
+
+
+def test_multi_line():
+    message = "This is a test with multiple lines.\nAnd this would be line #2"
+
+    thread = SlackThread("training-engine-test", "Slack Test")
+    assert thread.thread_ts is None
+    assert thread.last_response is None
+
+    thread.send_msg(message)
+    assert thread.thread_ts is not None
+    assert thread.last_response is not None
+
+    thread.warnings = 1
+    thread.errors = 2
+    thread.exceptions = 3
+    message, color = thread.rebuild_first_message()
+    assert message == "| 3 Exceptions | 2 Errors | 1 Warnings |\nThis is a test with multiple lines.\nAnd this would be line #2"
+    assert color == "danger"
 
 
 def test_send_msg():

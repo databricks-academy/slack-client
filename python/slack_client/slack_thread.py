@@ -70,7 +70,7 @@ class SlackThread(object):
             label += f" {self.warnings} Warnings |"
 
         label = label.strip()
-        parts = self.initial_attachments[0]["text"].split("\n")
+        parts = self.initial_attachments[0]["text"].split("|\n")
         text = parts[-1].strip()
         message = "| " +label + "\n" + text
 
